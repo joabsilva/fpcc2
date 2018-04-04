@@ -1,0 +1,180 @@
+---
+title: "Lab 1 - Checkpoint 1"
+author: "Joab de Araújo"
+date: "4 de abril de 2018"
+output: 
+  html_notebook: 
+    theme: spacelab
+---
+
+```{r setup}
+library(tidyverse)
+library(here)
+library(knitr)
+library(ggplot2)
+theme_set(theme_bw())
+
+```
+
+#**Descrevendo as variáveis utilizadas**
+
+
+```{r read}
+projetos = read_csv(here::here("data/projetos.csv"))
+```
+
+
+
+```{r clean}
+projetos = projetos %>% 
+    filter(lang != "javascript")
+```
+
+Nesse relatório serão apresentado os resultados obtidos, para responder os seguintes questionamentos:
+
+1. Como são os tamanhos de time nos projetos que usam travis em Java e em Ruby nos nossos dados?
+
+2. Ao comparar projetos em Java e em Ruby que tenham ao menos 10 contribuidores no time nos nossos dados, projetos de qual linguagem *variam mais* na proporção de builds cujo resultado é sucesso? 
+
+Para responder ambas as perguntas foram utilizados as variáveis:
+
+* **lang** e **team**, para responder a primeira pergunta;
+
+* **lang** e **build_success_prop**, para responder a segunda pergunta.
+
+Antes de apresentar os resultados, a seguir será apresentado uma breve descrição de cada variável utilizada:
+
+* **lang**: Linguagem predominante do projeto segundo o Github;
+* **team**: Tamanho do time(número de desenvolvedores) de cada projeto;
+* **build_success_prop**: A proporção de copilações que tiveram sucesso em relação ao número de copilações totais.
+
+Essas variáveis foram obtidas do site [TravisTorrent](https://travistorrent.testroots.org/ "Site TravisTorrent") e toda a análise dos dados foi feito usando a linguagem R.
+
+# Descrevendo a distribuição da variável *team*
+
+Com o gráfico [BoxPlot](https://pt.wikipedia.org/wiki/Diagrama_de_caixa "O que é BoxPlot"), é possível observar valores de centralidade como a mediana, e também valores de extremidades e [*outliers*](https://pt.wikipedia.org/wiki/Outlier "O que são outliers").
+
+
+```{r}
+
+  ggplot(projetos, aes(x = lang, y = team)) + 
+  geom_boxplot(width = .3, outlier.colour = "red",  outlier.shape = 1) +
+    scale_y_log10()
+
+```
+
+
+Os valores na tabela  gerada pela sumarização, ratificam o que foi visualizado no BoxPlot
+
+```{r}
+Mode <- function(x) {
+  t <- table(x)
+  return(as.numeric(names(t)[t == max(t)]))
+ 
+}
+```
+
+```{r}
+
+projetos %>% 
+  group_by(lang) %>% 
+ summarise(iqr = IQR(team),
+ media = mean(team),
+ moda = Mode(team),
+ mediana = median(team),
+ sd = sd(team))
+
+
+```
+
+#Simetria 
+
+Em termos de simetria, será abordado o [*Skew*](https://en.wikipedia.org/wiki/Skewness "Skewness"), se observado o gráfico a seguir, pode-se observar que o gráfico tende a esquerda(skew-left), ou seja, ela é negativa pois a maioria dos valores se encontram abaixo da média.
+
+```{r}
+projetos %>% 
+    ggplot(aes(x = team, color=lang)) + 
+    geom_density() + scale_x_log10() 
+```
+
+#Concentração
+
+Em termos de concentração, pode ser visto que os times do Ruby tem alguns valores mais dispersos, porém ambos tem uma concentração grande abaixo de 10 times. 
+
+```{r}
+projetos %>% 
+    ggplot(aes(x = lang, y = team)) + 
+    geom_jitter(alpha = .4, width = .2, size = .8) 
+```
+
+
+#Finalizando a variável *team*
+
+A maior parte dos times acontecem entre 1 e 10, e o número de projetos utilizados é maior para Ruby para cada tamanho do time.
+
+```{r}
+projetos %>% 
+    ggplot(aes(x = team)) + 
+    geom_histogram(bins = 20, fill = "white", color = "blue") + labs(x="Tamanho do Time", y="Número de Projetos") + facet_grid(lang ~ .) + geom_rug(alpha = .3) +
+   scale_x_log10()
+```
+
+
+
+#Analisando a variável *build_success_prop*
+
+Filtragem para analisar apenas os times que tenham ao menos 10 membros
+
+```{r clean2}
+projetos2 = projetos %>% 
+    filter(team >= 10)
+```
+
+#Variação de valores
+
+Como pode ser observado pela dispersão dos valores, o java aparenta ter uma variação maior, do que Ruby, já que a maioria dos valores estão mais próximos uns dos outros.
+
+```{r}
+projetos2 %>% 
+    ggplot(aes(x = lang, y = build_success_prop)) + 
+    geom_jitter(alpha = .4, width = .2, size = .8) 
+```
+
+#Simetria
+
+Sobre a simetria, como visto no gráfico a seguir, ele é skew-rigth para ambos, ou seja, os valores de ambos em sua maioria se concentram acima da média.
+
+```{r}
+projetos2 %>% 
+    ggplot(aes(x = build_success_prop)) + 
+    geom_density() + facet_grid(lang ~ .)
+
+```
+
+# Valores centrais, extremos e outliers
+
+Como pode ser observado os variam mais de um para outra linguagem, há uma maior [IQR](http://www.statisticshowto.com/probability-and-statistics/interquartile-range/ "O que é IQR?") em Java, pois há uma maior variação dos valores assim influenciando no valor de intervalo dos quartis, e isso pode ser visto nos resultados que encontra-se na tabela gerado da sumarização com a variância.
+
+```{r}
+
+
+ggplot(projetos2, aes(x = lang, y = build_success_prop)) + 
+  geom_boxplot(width = .3) 
+
+
+```
+
+
+```{r}
+
+projetos2 %>% 
+  group_by(lang) %>% 
+ summarise(iqr = IQR(build_success_prop),
+ media = mean(build_success_prop),
+ mediana = median(build_success_prop),
+ variancia = var(build_success_prop),
+ sd = sd(build_success_prop)) 
+
+```
+
+
