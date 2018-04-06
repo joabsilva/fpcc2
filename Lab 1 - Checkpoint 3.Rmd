@@ -1,0 +1,164 @@
+---
+title: "Lab 1 - Checkpoint 3"
+author: "Joab de Araújo"
+date: "1 de abril de 2018"
+output: 
+  html_notebook: 
+    theme: spacelab
+---
+
+```{r setup}
+library(tidyverse)
+library(here)
+library(knitr)
+library(ggplot2)
+library(dplyr)
+theme_set(theme_bw())
+
+```
+
+
+```{r read}
+checkpoint3 = read_csv(here::here("data/projetos.csv"))
+```
+
+
+```{r clean}
+checkpoint3 = checkpoint3 %>% 
+    filter(lang != "javascript")
+```
+
+```{r}
+ggplot(checkpoint3, aes(x = builds_per_month, color=lang))+
+    geom_density() + geom_rug(alpha = .3) + scale_x_log10()
+```
+
+```{r}
+  ggplot(checkpoint3, aes(x = lang, y = builds_per_month, show.legend =TRUE)) + 
+  geom_boxplot(width = .3, outlier.colour = "red",  outlier.shape = 1) +
+      scale_y_log10()
+
+```
+
+
+
+
+```{r}
+
+checkpoint3 %>% 
+  group_by(lang) %>% 
+ summarise(iqr = IQR(builds_per_month),
+ media = mean(builds_per_month),
+ mediana = median(builds_per_month),
+ sd = sd(builds_per_month))
+
+
+```
+
+```{r}
+ggplot(checkpoint3, aes(sloc_end)) +
+    geom_histogram(bins = 60, fill = "white", color = "blue")+
+    #geom_point(aes(color=lang))+
+    facet_grid(lang ~ .) +
+    geom_rug(alpha = .3) +
+    scale_x_log10() +
+    scale_y_log10()
+```
+
+```{r}
+checkpoint3 %>% 
+  group_by(lang) %>% 
+ summarise(iqr = IQR(sloc_end),
+ media = mean(sloc_end),
+ mediana = median(sloc_end),
+ sd = sd(sloc_end))
+
+
+```
+
+```{r}
+means <- aggregate(builds_per_month ~  lang, checkpoint3, mean)
+ggplot(means, aes(lang, builds_per_month)) +
+  geom_col(width = 0.5)
+```
+
+```{r}
+checkpoint3 %>% 
+    ggplot(aes(x = lang, y = sloc_end)) + 
+    geom_jitter(alpha = .4, width = .2, size = .8)+
+    scale_y_log10()
+```
+
+```{r}
+
+ggplot(checkpoint3, aes(team, y=builds_per_month)) +
+    geom_line(aes(color=lang))+
+    geom_point(aes(color=lang))+
+    facet_grid(lang ~ .) +
+    scale_x_log10() +
+    scale_y_log10()
+```
+
+```{r}
+checkpoint3 %>% 
+    ggplot(aes(x = team, y = sloc_end)) + 
+    geom_jitter(alpha = .4, width = .2, size = .8)+
+    geom_smooth(method = 'loess') +
+    facet_grid(lang ~ .) +
+    scale_x_log10() +
+    scale_y_log10()
+```
+
+```{r}
+#means <- aggregate(builds_per_month ~  lang, checkpoint3, mean)
+ggplot(checkpoint3, aes(commits_per_month, sloc_end)) +
+  geom_col(width = 0.40) +
+    scale_x_log10()
+```
+
+```{r clean2}
+checkpoint31 = checkpoint3 %>% 
+    filter(activity_period > 12)
+```
+
+
+```{r}
+
+ggplot(checkpoint3, aes(activity_period, y=commits_per_month)) +
+    #geom_histogram(bins = 60, fill = "white", color = "blue") +
+    geom_jitter(alpha = .4, width = .2, size = .8)+
+    geom_smooth(method = 'loess', span = 0.3) +
+    #geom_line(aes(color=lang))+
+    #geom_point(aes(color=lang))+
+    facet_grid(lang ~ .) +
+    #scale_x_log10() #+
+    scale_y_log10()
+```
+
+```{r}
+  ggplot(checkpoint3, aes(x = lang, y = sloc_end, show.legend =TRUE)) + 
+  geom_boxplot(width = .3, outlier.colour = "red",  outlier.shape = 1) +
+      scale_y_log10()
+
+```
+
+```{r}
+checkpoint3 %>% 
+  group_by(lang) %>% 
+ summarise(iqr = IQR(sloc_end),
+ media = mean(sloc_end),
+ mediana = median(sloc_end),
+ sd = sd(sloc_end))
+
+
+```
+
+```{r}
+
+ggplot(checkpoint3, aes(team, y=sloc_end)) +
+    geom_line(aes(color=lang))+
+    geom_point(aes(color=lang))+
+    facet_grid(lang ~ .) +
+    scale_x_log10() +
+    scale_y_log10()
+```
