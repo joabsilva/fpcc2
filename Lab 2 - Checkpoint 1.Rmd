@@ -1,0 +1,138 @@
+---
+title: "Lab 2 - Checkpoint 1"
+author: "Joab de Araújo"
+date: "16 de abril de 2018"
+output: 
+  html_notebook: 
+    theme: spacelab
+---
+
+```{r setup}
+suppressMessages(library("tidyverse"))
+suppressMessages(library("here"))
+suppressMessages(library("ggplot2"))
+library(tidyverse)
+library(here)
+library(knitr)
+library(ggplot2)
+library(dplyr)
+theme_set(theme_bw())
+
+```
+
+#**Descrevendo as variáveis utilizadas**
+
+```{r read}
+checkpoint1 = read_csv(here::here("data/projetos.csv"))
+```
+
+```{r clean}
+checkpoint1 = checkpoint1 %>% 
+    filter(lang != "javascript")
+```
+
+Nesse relatório serão apresentado os resultados obtidos, para responder a seguinte pergunta:
+
+1. Existe alguma relação entre o tamanho do time e o número de commits e builds por mês?
+
+Para responder a pergunta foram utilizados as variáveis:
+
+* **commits_per_month**: É a média mensal de commits;
+* **team**: Tamanho do time(número de desenvolvedores) de cada projeto;
+* **builds_per_month**: É a média mensal de builds;
+* **lang**: Linguagem predominante do projeto.
+
+Essas variáveis foram obtidas do site [TravisTorrent](https://travistorrent.testroots.org/ "Site TravisTorrent") e toda a análise dos dados foi feito usando a linguagem R.
+
+Para isso 6 gráficos distintos foram elaborados para ver qual gráfico melhor responderia essa pergunta. Cada gráfico será enumerado para facilitar o detalhamento mais à frente.
+
+##**Gráfico 1**
+```{r}
+projetos = checkpoint1 %>% gather(quant_type, quant, commits_per_month, builds_per_month)
+projetos %>% 
+    ggplot(aes(x = lang, y = quant)) +
+    labs(x = "Linguagem", y = "Quantidade", color = "Variáveis", shape = "Variáveis", size = "Tamanho do Time") +
+    geom_jitter(aes(color = quant_type, shape = quant_type, size = team), alpha = 0.3) +
+    scale_y_log10()
+
+```
+##**Gráfico 2**
+
+```{r}
+
+projetos = checkpoint1 %>% gather(quant_type, quant, commits_per_month, builds_per_month)
+projetos %>% 
+    ggplot(aes(x = lang, y = quant)) +
+    labs(x = "Linguagem", y = "Quantidade", color = "Variáveis", shape = "Variáveis", size = "Tamanho do Time") +
+    facet_grid(quant_type ~ .)+
+    geom_jitter(aes(color = quant_type, shape = quant_type, size = team), alpha = 0.3) +
+    scale_shape_manual(values=c(18,17))+
+    scale_y_log10()
+
+```
+
+##**Gráfico 3**
+
+```{r}
+projetos = checkpoint1 %>% gather(quant_type, quant, commits_per_month, builds_per_month)
+projetos %>% 
+    ggplot(aes(x = team, y = quant)) +
+    labs(x = "Time", y = "Quantidade", color = "Variáveis", shape = "Variáveis") +
+    facet_grid(lang ~ .) +
+    geom_jitter(aes(color = quant_type, shape = quant_type), alpha = 0.3) +
+    geom_smooth(method = 'loess', colour="black")+
+    scale_y_log10() +
+    scale_x_log10()
+
+```
+
+##**Gráfico 4**
+
+```{r}
+projetos = checkpoint1 %>% gather(quant_type, quant, commits_per_month, builds_per_month)
+projetos %>% 
+    ggplot(aes(x = team, y = quant)) +
+    labs(x = "Time", y = "Quantidade", color = "Linguagens", shape = "Linguagens") +
+    facet_grid(quant_type ~ .) +
+    geom_jitter(aes(color = lang, shape = lang),alpha = 0.3) +
+    scale_shape_manual(values=c(18,17))+
+    geom_smooth(method = 'loess', colour="black")+
+    scale_y_log10() +
+    scale_x_log10()
+
+```
+
+##**Gráfico 5**
+
+```{r}
+projetos = checkpoint1 %>% gather(quant_type, quant, commits_per_month, builds_per_month)
+projetos %>% 
+    ggplot(aes(x = lang, y = quant)) +
+    labs(x = "Linguagem", y = "Quantidade", color = "Variáveis", shape = "Variáveis", size = "Tamanho do Time") +
+    geom_jitter(aes(color = quant_type, shape = quant_type, size = team), alpha = 0.3) +
+    scale_shape_manual(values=c(15,8))+
+    scale_y_log10()
+
+```
+##**Gráfico 6**
+
+```{r}
+
+projetos = checkpoint1 %>% gather(quant_type, quant, commits_per_month, builds_per_month)
+projetos %>% 
+    ggplot(aes(x = lang, y = quant)) +
+    labs(x = "Linguagem", y = "Quantidade", color = "Variáveis", shape = "Variáveis", size = "Tamanho do Time") +
+    facet_grid(quant_type ~ .)+
+    geom_jitter(aes(color = quant_type, shape = quant_type, size = team), alpha = 0.3) +
+    scale_shape_manual(values=c(15,8))+
+    scale_y_log10()
+
+```
+
+##**Respondendo a pergunta**
+
+No aspecto de melhor visualização para a resposta, dois gráficos se destacaram mais, que foram os gráficos 2 e 4.
+
+O gráfico 4 ajudado pela função [geom_smooth](http://ggplot2.tidyverse.org/reference/geom_smooth.html "Documentação Smooth"), em que a linha indica a média, mostra que a medida que os times vão crescendo, a média tanto de commits, quanto de builds também aumenta. Além disso pode ser observado que a maioria dos pontos no gráfico, se concentram abaixo de 1000(commits e builds por mês) enquanto os time tem tamanho até 10, e após isso há um leve aumento da média e a medida que o tamanho dos times aumenta, mais pontos são registrados nos valores acima de 1000.
+
+O gráfico 2 também é uma boa opção devido ao tamanho das formas dos pontos. Não consegue ser tão claro a observação como no gráfico 4, porém percebe-se o maior número de formas maiores dos pontos nos valores acima de 1000, com isso pode-se inferir que também quanto maior são os times, maiores são o número de builds e commits por mês.
